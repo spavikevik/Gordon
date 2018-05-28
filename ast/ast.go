@@ -141,9 +141,8 @@ func (il *IntegerLiteral) TokenLiteral() string { return il.Token.Literal }
 func (il *IntegerLiteral) String() string       { return il.Token.Literal }
 
 type RealLiteral struct {
-	Token       token.Token
-	IntPart     Expression
-	DecimalPart Expression
+	Token token.Token
+	Value float64
 }
 
 func (rl *RealLiteral) expressionNode()      {}

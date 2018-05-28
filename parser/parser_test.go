@@ -5,7 +5,6 @@ import (
 	"gordon/ast"
 	"gordon/lexer"
 	"strconv"
-	"strings"
 	"testing"
 )
 
@@ -136,13 +135,8 @@ func TestIntegerLiteralExpression(t *testing.T) {
 	if !ok {
 		t.Fatalf("exp not *ast.IntegerLiteral. got=%T", stmt.Expression)
 	}
-	if literal.Value != 5 {
-		t.Errorf("literal.Value not %d. got=%d", 5, literal.Value)
-	}
-	if literal.TokenLiteral() != "5" {
-		t.Errorf("literal.TokenLiteral not %s. got=%s", "5",
-			literal.TokenLiteral())
-	}
+
+	testIntegerLiteral(t, literal, 5)
 }
 
 func TestRealLiteralExpression(t *testing.T) {
@@ -168,26 +162,7 @@ func TestRealLiteralExpression(t *testing.T) {
 		t.Fatalf("exp not *ast.RealLiteral. got=%T", stmt.Expression)
 	}
 
-	intPart, ok := literal.IntPart.(*ast.IntegerLiteral)
-	if !ok {
-		t.Fatalf("literal.IntPart not *ast.IntegerLiteral. got=%T", literal.IntPart)
-	}
-	if intPart.Value != 5 {
-		t.Errorf("intPart.Value not %d. got=%d", 5, intPart.Value)
-	}
-
-	decimalPart, ok := literal.DecimalPart.(*ast.IntegerLiteral)
-	if !ok {
-		t.Fatalf("literal.DecimalPart not *ast.IntegerLiteral. got=%T", literal.DecimalPart)
-	}
-	if decimalPart.Value != 34 {
-		t.Errorf("decimalPart.Value not %d. got=%d", 34, decimalPart.Value)
-	}
-
-	if literal.TokenLiteral() != "5.34" {
-		t.Errorf("literal.TokenLiteral not %s. got=%s", "5.34",
-			literal.TokenLiteral())
-	}
+	testRealLiteral(t, literal, 5.34)
 }
 
 func TestBooleanExpression(t *testing.T) {
@@ -759,18 +734,14 @@ func testRealLiteral(t *testing.T, rl ast.Expression, value float64) bool {
 		return false
 	}
 
-	valueString := strconv.FormatFloat(value, 'f', -1, 64)
-	realParts := strings.Split(valueString, ".")
-	intPartVal, _ := strconv.ParseInt(realParts[0], 10, 64)
-	decimalPartVal, _ := strconv.ParseInt(realParts[1], 10, 64)
-
-	if real.IntPart.(*ast.IntegerLiteral).Value != intPartVal ||
-		real.DecimalPart.(*ast.IntegerLiteral).Value != decimalPartVal {
-		t.Errorf("real value not %s. got=%d.%d", valueString, real.IntPart, real.DecimalPart)
+	if real.Value != value {
+		t.Errorf("real.Value not %s. got=%s", formatReal(value), formatReal(real.Value))
+		return false
 	}
 
-	if real.TokenLiteral() != valueString {
-		t.Errorf("real.TokenLiteral not %s. got=%s", valueString, real.TokenLiteral())
+	if real.TokenLiteral() != fmt.Sprintf("%s", formatReal(value)) {
+		t.Errorf("real.TokenLiteral not %s. got=%s", formatReal(value),
+			real.TokenLiteral())
 		return false
 	}
 
@@ -835,4 +806,8 @@ func testLetStatement(t *testing.T, s ast.Statement, name string) bool {
 	}
 
 	return true
+}
+
+func formatReal(val float64) string {
+	return strconv.FormatFloat(val, 'f', -1, 64)
 }

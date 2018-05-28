@@ -17,7 +17,6 @@ const (
 	PRODUCT
 	PREFIX
 	CALL
-	DOT
 )
 
 var precedences = map[token.TokenType]int{
@@ -30,7 +29,6 @@ var precedences = map[token.TokenType]int{
 	token.SLASH:    PRODUCT,
 	token.ASTERISK: PRODUCT,
 	token.LPAREN:   CALL,
-	token.DOT:      DOT,
 }
 
 type (
@@ -58,6 +56,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.prefixParseFns = make(map[token.TokenType]prefixParseFn)
 	p.registerPrefix(token.IDENT, p.parseIdentifier)
 	p.registerPrefix(token.INT, p.parseIntegerLiteral)
+	p.registerPrefix(token.REAL, p.parseRealLiteral)
 	p.registerPrefix(token.TRUE, p.parseBoolean)
 	p.registerPrefix(token.FALSE, p.parseBoolean)
 	p.registerPrefix(token.BANG, p.parsePrefixExpression)
@@ -76,7 +75,6 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerInfix(token.LT, p.parseInfixExpression)
 	p.registerInfix(token.GT, p.parseInfixExpression)
 	p.registerInfix(token.LPAREN, p.parseCallExpression)
-	p.registerInfix(token.DOT, p.parseRealLiteral)
 
 	// Read two tokens so that curToken and peekToken will be set
 	p.nextToken()
@@ -236,6 +234,21 @@ func (p *Parser) parseIntegerLiteral() ast.Expression {
 	return lit
 }
 
+func (p *Parser) parseRealLiteral() ast.Expression {
+	lit := &ast.RealLiteral{Token: p.curToken}
+
+	value, err := strconv.ParseFloat(p.curToken.Literal, 64)
+	if err != nil {
+		msg := fmt.Sprintf("could not parse %q as real", p.curToken.Literal)
+		p.errors = append(p.errors, msg)
+		return nil
+	}
+
+	lit.Value = value
+
+	return lit
+}
+
 func (p *Parser) parseBoolean() ast.Expression {
 	return &ast.Boolean{Token: p.curToken, Value: p.curTokenIs(token.TRUE)}
 }
@@ -385,26 +398,6 @@ func (p *Parser) parseCallArguments() []ast.Expression {
 	}
 
 	return args
-}
-
-func (p *Parser) parseRealLiteral(intPart ast.Expression) ast.Expression {
-	lit := &ast.RealLiteral{IntPart: intPart}
-
-	intPartIntegerLiteral, ok := intPart.(*ast.IntegerLiteral)
-	if !ok {
-		return nil
-	}
-	lit.Token = intPartIntegerLiteral.Token
-
-	if !p.expectPeek(token.INT) {
-		return nil
-	}
-
-	lit.DecimalPart = p.parseIntegerLiteral()
-
-	lit.Token.ConvertToReal(lit.DecimalPart.TokenLiteral())
-
-	return lit
 }
 
 func (p *Parser) noPrefixParseFnError(t token.TokenType) {
