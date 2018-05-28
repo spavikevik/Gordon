@@ -1,8 +1,8 @@
 package lexer
 
 import (
-	"testing"
 	"gordon/token"
+	"testing"
 )
 
 func TestNextToken(t *testing.T) {
@@ -25,10 +25,11 @@ if (5 < 10) {
 
 10 == 10;
 10 != 9;
+3.14;
 `
 
 	tests := []struct {
-		expectedType	token.TokenType
+		expectedType    token.TokenType
 		expectedLiteral string
 	}{
 		{token.LET, "let"},
@@ -103,6 +104,8 @@ if (5 < 10) {
 		{token.INT, "10"},
 		{token.NOT_EQ, "!="},
 		{token.INT, "9"},
+		{token.SEMICOLON, ";"},
+		{token.REAL, "3.14"},
 		{token.SEMICOLON, ";"},
 		{token.EOF, ""},
 	}
