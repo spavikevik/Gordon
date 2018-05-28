@@ -2,18 +2,21 @@ package parser
 
 import (
 	"fmt"
-	"testing"
 	"gordon/ast"
 	"gordon/lexer"
+	"strconv"
+	"strings"
+	"testing"
 )
 
 func TestLetStatements(t *testing.T) {
 	tests := []struct {
-		input			   string
+		input              string
 		expectedIdentifier string
-		expectedValue	   interface{}
+		expectedValue      interface{}
 	}{
 		{"let x = 5;", "x", 5},
+		{"let x = 4.569;", "x", 4.569},
 		{"let y = true;", "y", true},
 		{"let foobar = y;", "foobar", "y"},
 	}
@@ -40,7 +43,7 @@ func TestLetStatements(t *testing.T) {
 			return
 		}
 	}
-	
+
 }
 
 func TestReturnStatements(t *testing.T) {
@@ -142,9 +145,54 @@ func TestIntegerLiteralExpression(t *testing.T) {
 	}
 }
 
+func TestRealLiteralExpression(t *testing.T) {
+	input := "5.34;"
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program doesn't have enough statementd. got=%d",
+			len(program.Statements))
+	}
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got=%T",
+			program.Statements[0])
+	}
+
+	literal, ok := stmt.Expression.(*ast.RealLiteral)
+	if !ok {
+		t.Fatalf("exp not *ast.RealLiteral. got=%T", stmt.Expression)
+	}
+
+	intPart, ok := literal.IntPart.(*ast.IntegerLiteral)
+	if !ok {
+		t.Fatalf("literal.IntPart not *ast.IntegerLiteral. got=%T", literal.IntPart)
+	}
+	if intPart.Value != 5 {
+		t.Errorf("intPart.Value not %d. got=%d", 5, intPart.Value)
+	}
+
+	decimalPart, ok := literal.DecimalPart.(*ast.IntegerLiteral)
+	if !ok {
+		t.Fatalf("literal.DecimalPart not *ast.IntegerLiteral. got=%T", literal.DecimalPart)
+	}
+	if decimalPart.Value != 34 {
+		t.Errorf("decimalPart.Value not %d. got=%d", 34, decimalPart.Value)
+	}
+
+	if literal.TokenLiteral() != "5.34" {
+		t.Errorf("literal.TokenLiteral not %s. got=%s", "5.34",
+			literal.TokenLiteral())
+	}
+}
+
 func TestBooleanExpression(t *testing.T) {
 	booleanTests := []struct {
-		input			string
+		input           string
 		expectedBoolean bool
 	}{
 		{"true", true},
@@ -230,7 +278,7 @@ func TestIfExpression(t *testing.T) {
 
 func TestIfElseExpression(t *testing.T) {
 	input := `if (x < y) { x } else { y }`
-	
+
 	l := lexer.New(input)
 	p := New(l)
 	program := p.ParseProgram()
@@ -289,11 +337,12 @@ func TestIfElseExpression(t *testing.T) {
 
 func TestParsingPrefixExpressions(t *testing.T) {
 	prefixTests := []struct {
-		input	 string
+		input    string
 		operator string
-		value	 interface{}
+		value    interface{}
 	}{
 		{"!5;", "!", 5},
+		{"!5.4;", "!", 5.4},
 		{"-15;", "-", 15},
 		{"!true;", "!", true},
 		{"!false;", "!", false},
@@ -331,15 +380,15 @@ func TestParsingPrefixExpressions(t *testing.T) {
 }
 
 func TestParsingInfixExpressions(t *testing.T) {
-	infixTests := []struct{
-		input	   string
+	infixTests := []struct {
+		input      string
 		leftValue  interface{}
 		operator   string
 		rightValue interface{}
 	}{
 		{"5 + 5;", 5, "+", 5},
 		{"5 - 5;", 5, "-", 5},
-		{"5 * 5;", 5, "*", 5},
+		{"5 * 5.9;", 5, "*", 5.9},
 		{"5 / 5;", 5, "/", 5},
 		{"5 > 5;", 5, ">", 5},
 		{"5 < 5;", 5, "<", 5},
@@ -366,9 +415,9 @@ func TestParsingInfixExpressions(t *testing.T) {
 			t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got=%T",
 				program.Statements[0])
 		}
-		
+
 		if !testInfixExpression(t, stmt.Expression, tt.leftValue,
-				tt.operator, tt.rightValue) {
+			tt.operator, tt.rightValue) {
 			return
 		}
 	}
@@ -423,7 +472,7 @@ func TestFunctionLiteralParsing(t *testing.T) {
 
 func TestFunctionParameterParsing(t *testing.T) {
 	tests := []struct {
-		input		   string
+		input          string
 		expectedParams []string
 	}{
 		{input: "fn() {};", expectedParams: []string{}},
@@ -491,7 +540,7 @@ func TestCallExpressionParsing(t *testing.T) {
 
 func TestOperatorPrecedenceParsing(t *testing.T) {
 	tests := []struct {
-		input	 string
+		input    string
 		expected string
 	}{
 		{
@@ -571,12 +620,16 @@ func TestOperatorPrecedenceParsing(t *testing.T) {
 			"((5 + 5) * 2)",
 		},
 		{
-			"2 / (5 + 5)",
-			"(2 / (5 + 5))",
+			"2.8 / (5 + 5)",
+			"(2.8 / (5 + 5))",
 		},
 		{
 			"-(5 + 5)",
 			"(-(5 + 5))",
+		},
+		{
+			"5.43 + 5",
+			"(5.43 + 5)",
 		},
 		{
 			"!(true == true)",
@@ -645,6 +698,10 @@ func testLiteralExpression(
 		return testIntegerLiteral(t, exp, int64(v))
 	case int64:
 		return testIntegerLiteral(t, exp, v)
+	case float32:
+		return testRealLiteral(t, exp, float64(v))
+	case float64:
+		return testRealLiteral(t, exp, v)
 	case string:
 		return testIdentifier(t, exp, v)
 	case bool:
@@ -689,6 +746,31 @@ func testIntegerLiteral(t *testing.T, il ast.Expression, value int64) bool {
 	if integ.TokenLiteral() != fmt.Sprintf("%d", value) {
 		t.Errorf("integ.TokenLiteral not %d. got=%s", value,
 			integ.TokenLiteral())
+		return false
+	}
+
+	return true
+}
+
+func testRealLiteral(t *testing.T, rl ast.Expression, value float64) bool {
+	real, ok := rl.(*ast.RealLiteral)
+	if !ok {
+		t.Errorf("rl not *ast.RealLiteral. got=%T", rl)
+		return false
+	}
+
+	valueString := strconv.FormatFloat(value, 'f', -1, 64)
+	realParts := strings.Split(valueString, ".")
+	intPartVal, _ := strconv.ParseInt(realParts[0], 10, 64)
+	decimalPartVal, _ := strconv.ParseInt(realParts[1], 10, 64)
+
+	if real.IntPart.(*ast.IntegerLiteral).Value != intPartVal ||
+		real.DecimalPart.(*ast.IntegerLiteral).Value != decimalPartVal {
+		t.Errorf("real value not %s. got=%d.%d", valueString, real.IntPart, real.DecimalPart)
+	}
+
+	if real.TokenLiteral() != valueString {
+		t.Errorf("real.TokenLiteral not %s. got=%s", valueString, real.TokenLiteral())
 		return false
 	}
 

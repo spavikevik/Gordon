@@ -1,37 +1,41 @@
 package token
 
+import "strings"
+
 type TokenType string
 
 type Token struct {
-	Type	TokenType
+	Type    TokenType
 	Literal string
 }
 
 const (
 	ILLEGAL = "ILLEGAL"
-	EOF		= "EOF"
+	EOF     = "EOF"
 
 	// Identifiers + literals
-	IDENT	= "IDENT"
-	INT		= "INT"
+	IDENT = "IDENT"
+	INT   = "INT"
+	REAL  = "REAL"
 
 	// Operators
-	ASSIGN	 = "="
-	PLUS	 = "+"
-	MINUS	 = "-"
-	BANG	 = "!"
+	ASSIGN   = "="
+	PLUS     = "+"
+	MINUS    = "-"
+	BANG     = "!"
 	ASTERISK = "*"
-	SLASH	 = "/"
+	SLASH    = "/"
 
-	LT	   = "<"
-	GT	   = ">"
+	LT = "<"
+	GT = ">"
 
-	EQ	   = "=="
+	EQ     = "=="
 	NOT_EQ = "!="
 
 	// Delimiters
-	COMMA	  = ","
+	COMMA     = ","
 	SEMICOLON = ";"
+	DOT       = "."
 
 	LPAREN = "("
 	RPAREN = ")"
@@ -40,21 +44,21 @@ const (
 
 	// Keywords
 	FUNCTION = "FUNCTION"
-	LET		 = "LET"
-	TRUE	 = "TRUE"
-	FALSE	 = "FALSE"
-	IF		 = "IF"
-	ELSE	 = "ELSE"
-	RETURN	 = "RETURN"
+	LET      = "LET"
+	TRUE     = "TRUE"
+	FALSE    = "FALSE"
+	IF       = "IF"
+	ELSE     = "ELSE"
+	RETURN   = "RETURN"
 )
 
 var keywords = map[string]TokenType{
-	"fn":  FUNCTION,
-	"let": LET, 
-	"true": TRUE,
-	"false": FALSE,
-	"if": IF,
-	"else": ELSE,
+	"fn":     FUNCTION,
+	"let":    LET,
+	"true":   TRUE,
+	"false":  FALSE,
+	"if":     IF,
+	"else":   ELSE,
 	"return": RETURN,
 }
 
@@ -63,4 +67,13 @@ func LookupIdent(ident string) TokenType {
 		return tok
 	}
 	return IDENT
+}
+
+func (tok *Token) appendToLiteral(val string, sep string) {
+	tok.Literal = strings.Join([]string{tok.Literal, val}, sep)
+}
+
+func (tok *Token) ConvertToReal(decimalPartLiteral string) {
+	tok.Type = REAL
+	tok.appendToLiteral(decimalPartLiteral, ".")
 }

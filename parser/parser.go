@@ -2,10 +2,10 @@ package parser
 
 import (
 	"fmt"
-	"strconv"
 	"gordon/ast"
 	"gordon/lexer"
 	"gordon/token"
+	"strconv"
 )
 
 const (
@@ -17,39 +17,41 @@ const (
 	PRODUCT
 	PREFIX
 	CALL
+	DOT
 )
 
 var precedences = map[token.TokenType]int{
-	token.EQ:		EQUALS,
-	token.NOT_EQ:	EQUALS,
-	token.LT:		LESSGREATER,
-	token.GT:		LESSGREATER,
-	token.PLUS:		SUM,
-	token.MINUS:	SUM,
-	token.SLASH:	PRODUCT,
+	token.EQ:       EQUALS,
+	token.NOT_EQ:   EQUALS,
+	token.LT:       LESSGREATER,
+	token.GT:       LESSGREATER,
+	token.PLUS:     SUM,
+	token.MINUS:    SUM,
+	token.SLASH:    PRODUCT,
 	token.ASTERISK: PRODUCT,
-	token.LPAREN:	CALL,
+	token.LPAREN:   CALL,
+	token.DOT:      DOT,
 }
 
 type (
 	prefixParseFn func() ast.Expression
-	infixParseFn func(ast.Expression) ast.Expression
+	infixParseFn  func(ast.Expression) ast.Expression
 )
 
 type Parser struct {
-	l *lexer.Lexer
+	l      *lexer.Lexer
 	errors []string
 
 	curToken  token.Token
 	peekToken token.Token
 
 	prefixParseFns map[token.TokenType]prefixParseFn
-	infixParseFns map[token.TokenType]infixParseFn
+	infixParseFns  map[token.TokenType]infixParseFn
 }
 
 func New(l *lexer.Lexer) *Parser {
 	p := &Parser{
-		l:		l,
+		l:      l,
 		errors: []string{},
 	}
 
@@ -74,7 +76,8 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerInfix(token.LT, p.parseInfixExpression)
 	p.registerInfix(token.GT, p.parseInfixExpression)
 	p.registerInfix(token.LPAREN, p.parseCallExpression)
-	
+	p.registerInfix(token.DOT, p.parseRealLiteral)
+
 	// Read two tokens so that curToken and peekToken will be set
 	p.nextToken()
 	p.nextToken()
@@ -83,7 +86,7 @@ func New(l *lexer.Lexer) *Parser {
 }
 
 func (p *Parser) registerPrefix(tokenType token.TokenType, fn prefixParseFn) {
-	p.prefixParseFns[tokenType] = fn	
+	p.prefixParseFns[tokenType] = fn
 }
 
 func (p *Parser) registerInfix(tokenType token.TokenType, fn infixParseFn) {
@@ -124,7 +127,7 @@ func (p *Parser) parseStatement() ast.Statement {
 		return p.parseLetStatement()
 	case token.RETURN:
 		return p.parseReturnStatement()
-	default: 
+	default:
 		return p.parseExpressionStatement()
 	}
 }
@@ -239,7 +242,7 @@ func (p *Parser) parseBoolean() ast.Expression {
 
 func (p *Parser) parsePrefixExpression() ast.Expression {
 	expression := &ast.PrefixExpression{
-		Token:	  p.curToken,
+		Token:    p.curToken,
 		Operator: p.curToken.Literal,
 	}
 
@@ -285,9 +288,9 @@ func (p *Parser) parseIfExpression() ast.Expression {
 
 func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
 	expression := &ast.InfixExpression{
-		Token:	  p.curToken,
+		Token:    p.curToken,
 		Operator: p.curToken.Literal,
-		Left:	  left,
+		Left:     left,
 	}
 
 	precedence := p.curPrecedence()
@@ -382,6 +385,26 @@ func (p *Parser) parseCallArguments() []ast.Expression {
 	}
 
 	return args
+}
+
+func (p *Parser) parseRealLiteral(intPart ast.Expression) ast.Expression {
+	lit := &ast.RealLiteral{IntPart: intPart}
+
+	intPartIntegerLiteral, ok := intPart.(*ast.IntegerLiteral)
+	if !ok {
+		return nil
+	}
+	lit.Token = intPartIntegerLiteral.Token
+
+	if !p.expectPeek(token.INT) {
+		return nil
+	}
+
+	lit.DecimalPart = p.parseIntegerLiteral()
+
+	lit.Token.ConvertToReal(lit.DecimalPart.TokenLiteral())
+
+	return lit
 }
 
 func (p *Parser) noPrefixParseFnError(t token.TokenType) {
