@@ -3,8 +3,8 @@ package parser
 import (
 	"fmt"
 	"gordon/ast"
+	"gordon/helpers"
 	"gordon/lexer"
-	"strconv"
 	"testing"
 )
 
@@ -748,12 +748,12 @@ func testRealLiteral(t *testing.T, rl ast.Expression, value float64) bool {
 	}
 
 	if real.Value != value {
-		t.Errorf("real.Value not %s. got=%s", formatReal(value), formatReal(real.Value))
+		t.Errorf("real.Value not %s. got=%s", helpers.Realf(value), helpers.Realf(real.Value))
 		return false
 	}
 
-	if real.TokenLiteral() != fmt.Sprintf("%s", formatReal(value)) {
-		t.Errorf("real.TokenLiteral not %s. got=%s", formatReal(value),
+	if real.TokenLiteral() != fmt.Sprintf("%s", helpers.Realf(value)) {
+		t.Errorf("real.TokenLiteral not %s. got=%s", helpers.Realf(value),
 			real.TokenLiteral())
 		return false
 	}
@@ -819,8 +819,4 @@ func testLetStatement(t *testing.T, s ast.Statement, name string) bool {
 	}
 
 	return true
-}
-
-func formatReal(val float64) string {
-	return strconv.FormatFloat(val, 'f', -1, 64)
 }
