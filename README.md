@@ -9,6 +9,7 @@ Features and characteristics going beyond the ones described in the book.
 
 - [x] Real numbers with automatic casting
 - [x] Caret operator
+- [x] Loop (`times (n) { do(something }`)
 - [ ] "typeof" operator
 - [ ] Exception throwing and handling
 - [ ] Algebraic effects (maybe?)
