@@ -7,9 +7,9 @@ As I have personal interest in compiler / language design theory, and since this
 ### Monkey extensions
 Features and characteristics going beyond the ones described in the book.
 
-[x] Real numbers with automatic casting
-[x] Caret operator
-[ ] "typeof" operator
-[ ] Exception throwing and handling
-[ ] Algebraic effects (maybe?)
-[ ] Etc.
+- [x] Real numbers with automatic casting
+- [x] Caret operator
+- [ ] "typeof" operator
+- [ ] Exception throwing and handling
+- [ ] Algebraic effects (maybe?)
+- [ ] Etc.
