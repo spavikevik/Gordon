@@ -310,6 +310,50 @@ func TestIfElseExpression(t *testing.T) {
 	}
 }
 
+func TestTimesExpression(t *testing.T) {
+	input := `times (3 ^ 5) { puts(3); }`
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Body does not contain %d statements. got=%d\n",
+			1, len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got=%T",
+			program.Statements[0])
+	}
+
+	exp, ok := stmt.Expression.(*ast.TimesExpression)
+	if !ok {
+		t.Fatalf("stmt.Expression is not ast.TimesExpression. got=%T", stmt.Expression)
+	}
+
+	if !testInfixExpression(t, exp.RepeatCount, 3, "^", 5) {
+		return
+	}
+
+	if len(exp.RepeatedBlock.Statements) != 1 {
+		t.Errorf("repeated block is not 1 statement. got=%d\n",
+			len(exp.RepeatedBlock.Statements))
+	}
+
+	repeatedBlock, ok := exp.RepeatedBlock.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("Statements[0] is not ast.ExpressionStatement. got=%T",
+			exp.RepeatedBlock.Statements[0])
+	}
+
+	if repeatedBlock.String() != "puts(3)" {
+		t.Errorf("repeated block is not: { %q }, got: { %q }", "puts(3)", repeatedBlock.String())
+	}
+}
+
 func TestParsingPrefixExpressions(t *testing.T) {
 	prefixTests := []struct {
 		input    string
@@ -702,7 +746,7 @@ func testLiteralExpression(
 func testIdentifier(t *testing.T, exp ast.Expression, value string) bool {
 	ident, ok := exp.(*ast.Identifier)
 	if !ok {
-		t.Errorf("exp not *ast.Identifier. got=%T", exp)
+		t.Errorf("exp %+v not *ast.Identifier. got=%T", exp, exp)
 		return false
 	}
 

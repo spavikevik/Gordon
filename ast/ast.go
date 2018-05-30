@@ -223,6 +223,25 @@ func (ie *IfExpression) String() string {
 	return out.String()
 }
 
+type TimesExpression struct {
+	Token         token.Token
+	RepeatCount   Expression
+	RepeatedBlock *BlockStatement
+}
+
+func (te *TimesExpression) expressionNode()      {}
+func (te *TimesExpression) TokenLiteral() string { return te.Token.Literal }
+func (te *TimesExpression) String() string {
+	var out bytes.Buffer
+
+	out.WriteString("times")
+	out.WriteString(te.RepeatCount.String())
+	out.WriteString(" ")
+	out.WriteString(te.RepeatedBlock.String())
+
+	return out.String()
+}
+
 type FunctionLiteral struct {
 	Token      token.Token
 	Parameters []*Identifier

@@ -23,6 +23,8 @@ if (5 < 10) {
 	return false;
 }
 
+times (3) { puts(4^2); }
+
 10 == 10;
 10 != 9;
 3.14;
@@ -95,6 +97,19 @@ if (5 < 10) {
 		{token.LBRACE, "{"},
 		{token.RETURN, "return"},
 		{token.FALSE, "false"},
+		{token.SEMICOLON, ";"},
+		{token.RBRACE, "}"},
+		{token.TIMES, "times"},
+		{token.LPAREN, "("},
+		{token.INT, "3"},
+		{token.RPAREN, ")"},
+		{token.LBRACE, "{"},
+		{token.IDENT, "puts"},
+		{token.LPAREN, "("},
+		{token.INT, "4"},
+		{token.CARET, "^"},
+		{token.INT, "2"},
+		{token.RPAREN, ")"},
 		{token.SEMICOLON, ";"},
 		{token.RBRACE, "}"},
 		{token.INT, "10"},

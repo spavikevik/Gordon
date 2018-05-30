@@ -81,6 +81,8 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		return evalInfixExpression(node.Operator, left, right)
 	case *ast.IfExpression:
 		return evalIfExpression(node, env)
+	case *ast.TimesExpression:
+		return evalTimesExpression(node, env)
 
 	}
 
@@ -312,6 +314,25 @@ func evalIfExpression(ie *ast.IfExpression, env *object.Environment) object.Obje
 	} else {
 		return NULL
 	}
+}
+
+func evalTimesExpression(te *ast.TimesExpression, env *object.Environment) object.Object {
+	repeatCount := Eval(te.RepeatCount, env)
+	if isError(repeatCount) {
+		return repeatCount
+	}
+
+	countInteger, ok := repeatCount.(*object.Integer)
+	if !ok {
+		return newError("condition not an integer: " + repeatCount.Inspect())
+	}
+
+	var i int64
+	for i = 1; i < countInteger.Value; i++ {
+		Eval(te.RepeatedBlock, env)
+	}
+
+	return Eval(te.RepeatedBlock, env)
 }
 
 func evalIdentifier(
