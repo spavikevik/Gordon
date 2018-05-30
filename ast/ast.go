@@ -235,8 +235,9 @@ func (te *TimesExpression) String() string {
 	var out bytes.Buffer
 
 	out.WriteString("times")
+	out.WriteString("(")
 	out.WriteString(te.RepeatCount.String())
-	out.WriteString(" ")
+	out.WriteString("): ")
 	out.WriteString(te.RepeatedBlock.String())
 
 	return out.String()
