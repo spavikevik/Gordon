@@ -28,6 +28,8 @@ times (3) { puts(4^2); }
 10 == 10;
 10 != 9;
 3.14;
+"foobar"
+"foo bar"
 `
 
 	tests := []struct {
@@ -122,6 +124,8 @@ times (3) { puts(4^2); }
 		{token.SEMICOLON, ";"},
 		{token.REAL, "3.14"},
 		{token.SEMICOLON, ";"},
+		{token.STRING, "foobar"},
+		{token.STRING, "foo bar"},
 		{token.EOF, ""},
 	}
 

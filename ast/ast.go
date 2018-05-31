@@ -149,6 +149,15 @@ func (rl *RealLiteral) expressionNode()      {}
 func (rl *RealLiteral) TokenLiteral() string { return rl.Token.Literal }
 func (rl *RealLiteral) String() string       { return rl.Token.Literal }
 
+type StringLiteral struct {
+	Token token.Token
+	Value string
+}
+
+func (sl *StringLiteral) expressionNode()      {}
+func (sl *StringLiteral) TokenLiteral() string { return sl.Token.Literal }
+func (sl *StringLiteral) String() string       { return sl.Token.Literal }
+
 type PrefixExpression struct {
 	Token    token.Token // Prefix token, eg. '!'
 	Operator string

@@ -14,9 +14,10 @@ const (
 	EOF     = "EOF"
 
 	// Identifiers + literals
-	IDENT = "IDENT"
-	INT   = "INT"
-	REAL  = "REAL"
+	IDENT  = "IDENT"
+	INT    = "INT"
+	REAL   = "REAL"
+	STRING = "STRING"
 
 	// Operators
 	ASSIGN   = "="
