@@ -31,6 +31,7 @@ times (3) { puts(4^2); }
 "foobar"
 "foo bar"
 [1, 2];
+{"foo": "bar"}
 `
 
 	tests := []struct {
@@ -133,6 +134,11 @@ times (3) { puts(4^2); }
 		{token.INT, "2"},
 		{token.RBRACKET, "]"},
 		{token.SEMICOLON, ";"},
+		{token.LBRACE, "{"},
+		{token.STRING, "foo"},
+		{token.COLON, ":"},
+		{token.STRING, "bar"},
+		{token.RBRACE, "}"},
 		{token.EOF, ""},
 	}
 
